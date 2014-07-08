@@ -8,6 +8,7 @@
 //------ インクルードファイルの読み込み ------//
 #include "../../DxLib/DxLib.h"
 #include<windows.h>
+#include<time.h>
 
 
 //------ 関数のプロトタイプ宣言 ------//
@@ -47,6 +48,10 @@ int title;//タイトル画像読み込み用
 int bg; //ゲーム本編背景画像用
 
 
+int rd;//ランダム用変数
+int dead_cnt=100;//死んだときのカウンタ
+
+
 
 struct par{
 
@@ -63,6 +68,12 @@ struct par{
 
 	int shot;//弾が出たかどうか
 
+	int kankaku;//敵の弾を撃つ間隔
+	int kankaku_sk;//敵の弾うち間隔初期値
+
+	int tama_x;
+	int tama_y;
+
 
 };//各キャラのパラメータ
 
@@ -76,6 +87,7 @@ struct score{
 
 struct par jiki;//自機の構造体宣言
 struct par tama;//発射した弾
+
 
 
 
@@ -128,6 +140,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 */
 void init()
 {
+
+	//ランダム生成
+	srand( (unsigned)time(NULL));
+
 	// ゲーム全体に関わる変数の初期化、画像ファイルの読み込みなどを書く
 
 	LoadDivGraph("../Img/en_my.bmp", 10, 5, 2, 32, 16, chr, 0);//キャラクタ読み込み
@@ -142,13 +158,16 @@ void init()
 	hidarihaji = 30;//キャラクタ描写領域左端のｘ座標
 	stop = 0;//敵全体をストップする
 
+	teki[0][0][0].haji=0;//敵が端にいるかフラグ
+
 	lx = 32;//キャラクタ横の長さ
 	ly = 16;//キャラクタ縦の長さ
 
 	G_mode = 0;//ゲームモード
 	T_Cnt = 20;//タイトル”ＰＵＳＨ　ＳＰＡＣＥ”点滅用カウンタ
 
-	jiki = { 225 + 32, 480 - (16 * 5), 2, 0, { 0 /*tama*/ }, 3, 20 };//自機の構造体宣言
+
+	jiki.x=225+32;jiki.y=480-(16*5),jiki.sp=2;jiki.dead=0;jiki.life=3;jiki.shot=0;//自機の構造体宣言
 	ten.now = 0;//現在スコアの初期化
 
 	//弾関係
@@ -159,8 +178,11 @@ void init()
 	{
 		//敵１（緑の一番上のヤツ　100点）
 		//teki1[i].x = teki2_1[i].x = teki2_2[i].x = teki3_1[i].x = teki3_2[i].x = (lx - 1) + lx*i;//敵のｘ座標
-		
+
 		teki[0][0][i].x = (lx - 1) + lx*i;//緑の敵のｘ座標
+
+		teki[0][0][i].count=0;
+		teki[0][0][0].dead=0;
 
 
 
@@ -170,27 +192,34 @@ void init()
 		teki[2][0][i].y = ly * 5 + ly * 3;//紫の敵１
 		teki[2][1][i].y = ly * 5 + ly * 4;//紫の敵2
 
+		teki[0][0][i].kankaku_sk=rand()%21+50;//緑の敵の弾うち間隔
+		teki[1][0][i].kankaku_sk=rand()%21+50;//水色１の敵の弾うち間隔
+		teki[1][1][i].kankaku_sk=rand()%21+50;//水色２の弾うち間隔
+		teki[2][0][i].kankaku_sk=rand()%21+50;//紫１の敵の弾うち間隔
+		teki[2][1][i].kankaku_sk=rand()%21+50;//紫２の敵の弾うち間隔
 
 
-		//teki1[i].y = ly * 5;//敵のｙ座標初期化
+		teki[0][0][i].kankaku=teki[0][0][i].kankaku_sk;
+		teki[1][0][i].kankaku=teki[1][0][i].kankaku_sk;
+		teki[1][1][i].kankaku=teki[1][1][i].kankaku_sk;
+		teki[2][0][i].kankaku=teki[2][0][i].kankaku_sk;
+		teki[2][1][i].kankaku=teki[2][1][i].kankaku_sk;
+
+
 
 		teki[0][0][i].sp = lx / 2;//敵の一回の移動距離
-		//teki1[i].sp = teki2_1[i].sp = teki2_2[i].sp = teki3_1[i].sp = teki3_2[i].sp = lx / 2;//敵の一回での移動距離
+		
 
-		//teki1[i].dead = teki2_1[i].dead = teki2_2[i].dead = teki3_1[i].dead = teki3_2[i].dead = 0;//敵に弾が当たったかどうか（１で当たり）
 		teki[0][0][i].dead  = 0;//敵に弾が当たったかどうか（１で当たり）
 
-		//teki1[i].count_MAX = 40;//敵スピードカウンタの最大値
-	    teki[0][0][i].count_MAX = 40;//敵スピードカウンタの最大値
+		
+		teki[0][0][i].count_MAX = 40;//敵スピードカウンタの最大値
 
-		//teki1[i].count = teki2_1[i].count = teki2_2[i].count = teki3_1[i].count = teki3_2[i].count = teki1[i].count_MAX;//何フレームおきに移動するか
+		
 		teki[0][0][i].count = teki[0][0][i].count_MAX;//
 
-		//teki1[i].haji = teki2_1[i].haji = teki2_2[i].haji = teki3_1[i].haji = teki3_2[i].haji = 3;//敵が端に着いたかどうか（１で着いた）
-		teki[0][0][i].haji = 3;//敵が端に着いたかどうか（１で着いた）
-
-
 	
+		teki[0][0][i].haji = 3;//敵が端に着いたかどうか（１で着いた）
 
 	}
 
@@ -255,75 +284,164 @@ void game_main()
 			ten.now += 100;//100点プラス
 			tama.shot = 0;//弾フラグ０
 			teki[0][0][0].dead = 1;//敵死亡
+			teki[0][0][0].shot=0;//敵ショットを消す
 		}
+		//敵弾が自機に当たった時
+
+		if(teki[0][0][0].shot==1 &&teki[0][0][0].tama_x+2>jiki.x && teki[0][0][0].tama_x<jiki.x+32 && teki[0][0][0].tama_y<jiki.y+16 && teki[0][0][0].tama_y+16>jiki.y &&  stop==0)
+		{
+			jiki.dead=1;
+			char c[20];
+			wsprintf(c, "HIT!");
+			DrawString(500, 128, c, GetColor(255, 255, 255));
+			
+			teki[0][0][0].shot=0;
+			jiki.shot=0;//自機玉消す
+           jiki.life--;//自機ライフーー
+		   teki[0][0][0].tama_x=-100;
+		   teki[0][0][0].tama_y=-100;
+
+			stop=1;
+			
+
+		}
+
+
+
+
 		//敵の処理
-		if (teki[0][0][0].count == 0)
+		if (teki[0][0][0].count == 0 && teki[0][0][0].dead==0)
 		{
 			teki[0][0][0].count = 40;
 
-			if (stop == 0)
+			if (teki[0][0][0].haji == 0)
 			{
 				teki[0][0][0].x += teki[0][0][0].sp;//横移動
 				if ((teki[0][0][0].x + lx + 1 >= migihaji && teki[0][0][0].sp > 0) || (teki[0][0][0].x - 1 <= 30 && teki[0][0][0].sp < 0))//端に行ったかどうかチェック
 				{
-					stop = 1;
+					teki[0][0][0].haji = 1;
 				}
 			}
-			else if (stop == 1)
+			else if (teki[0][0][0].haji == 1 && jiki.dead==0)
 
 			{
 				teki[0][0][0].y += lx;
 				teki[0][0][0].sp = ~teki[0][0][0].sp + 1;
-				stop = 0;
-			}
-						
+				teki[0][0][0].haji=0;
+			}	
+
 
 
 		}
 
 
-		
-		if (tama.shot == 1){
+
+
+
+
+		//自機の弾関係
+		if (tama.shot == 1 && stop==0){
 			DrawGraph(tama.x, tama.y, tm[0], TRUE);//弾０描画
 			tama.y -= tama.sp;//弾のｙ座標を引く
 		}
+
+		//自機の表示
+
+
+		if(jiki.dead==0 && stop==0)
+		{
 		DrawGraph(jiki.x, jiki.y, chr[3], TRUE);//自機の表示
-		if (teki[0][0][0].dead == 0)
+		}else if(jiki.dead==1 && stop==1)
 		{
-
-			DrawGraph(teki[0][0][0].x, teki[0][0][0].y, chr[2], TRUE);//敵１
+			
+			dead_cnt--;//死亡モードカウンタマイナス
+			if(dead_cnt%10>=5)
+			DrawGraph(jiki.x, jiki.y, chr[5], TRUE);//自機の表示
+			else
+			DrawGraph(jiki.x, jiki.y, chr[6], TRUE);//自機の表示
 		}
 
-		
-	
 
-		
-
-		teki[0][0][0].count--;
-
-
-
-		//if (CheckHitKey(KEY_INPUT_RIGHT) && jiki.x<450)
-		//	jiki.x += jiki.sp;//右へ
-		//if (CheckHitKey(KEY_INPUT_LEFT) && jiki.x>0 + lx)
-		//	jiki.x -= jiki.sp;//左へ
-
-		//時機の操作
-		if ((Key_Info&0x01) == 0x01 && jiki.x > 31)
-			jiki.x -= jiki.sp;//左へ
-		if ((Key_Info&0x02) == 0x02 && jiki.x + lx < 450 + 31)
-			jiki.x += jiki.sp;//右へ
-		if ((key_trg&0x10) == 0x10 && tama.shot == 0)
-		{
-
-			tama.x = jiki.x+15; tama.y = jiki.y;//弾に現在の自機座標代入
-			tama.shot = 1;//弾０の発射
-		}
+		//自機弾が上に達したら
 		if (tama.y < 0)
 		{
 
 			tama.shot = 0;//弾フラグ０
 		}
+
+
+		//敵弾表示
+		if (teki[0][0][0].shot == 1 && stop==0 && teki[0][0][0].dead==0)
+		{
+
+			DrawGraph(teki[0][0][0].tama_x, teki[0][0][0].tama_y, tm[1], TRUE);//敵弾の表示
+
+			teki[0][0][0].tama_y+=tama.sp;
+
+
+		}for(i=0;i<11;i++)
+		{
+			if(teki[0][0][i].kankaku<0 && teki[0][0][i].shot==0 && stop==0)
+			{
+				teki[0][0][i].kankaku=teki[0][0][i].kankaku_sk;
+				teki[0][0][i].shot=1;//玉フラグ１
+				teki[0][0][i].tama_x=teki[0][0][i].x+15;
+				teki[0][0][i].tama_y=teki[0][0][i].y;
+
+			}
+			if(teki[0][0][i].tama_y+16>640){
+
+				teki[0][0][i].shot=0;
+			}
+
+		}
+
+
+
+		//敵表示
+	
+			if(teki[0][0][0].dead==0)
+			{
+			DrawGraph(teki[0][0][0].x, teki[0][0][0].y, chr[2], TRUE);//敵１の表示
+			}
+
+
+
+		//時機の操作
+		if ((Key_Info&0x01) == 0x01 && jiki.x > 31 && stop==0)
+			jiki.x -= jiki.sp;//左へ
+		if ((Key_Info&0x02) == 0x02 && jiki.x + lx < 450 + 31 && stop==0)
+			jiki.x += jiki.sp;//右へ
+		if ((key_trg&0x10) == 0x10 && tama.shot == 0 && stop==0)
+		{
+
+			tama.x = jiki.x+15; tama.y = jiki.y;//弾に現在の自機座標代入
+			tama.shot = 1;//弾０の発射
+		}
+
+
+
+
+
+
+
+
+
+		//カウンタ類
+		
+		if(dead_cnt==0)
+		{
+			jiki.dead=0;
+			stop=0;
+			dead_cnt=100;
+		}
+		
+		
+		teki[0][0][0].count--;
+		teki[0][0][0].kankaku--;
+
+
+
 
 		break;
 
