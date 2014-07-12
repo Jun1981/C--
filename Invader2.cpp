@@ -58,8 +58,8 @@ int i, j,k;//ループ用
 int title;//タイトル画像読み込み用
 int bg; //ゲーム本編背景画像用
 int GO;//ゲームオーバー画面読み取り用
-int bk;//フェードイン／フェードアウト用
-int wt;
+int cl;//クリア画面用
+
 
 int chr[10];//キャラクター分割画像読み込み用変数
 int tm[2];//弾データ読み込み用変数
@@ -199,13 +199,13 @@ void init()
 
 	// ゲーム全体に関わる変数の初期化、画像ファイルの読み込みなどを書く
 
-	LoadDivGraph("../Img/en_my.bmp", 10, 5, 2, 32, 16, chr, 0);//キャラクタ読み込み
-	LoadDivGraph("../Img/missile.bmp", 2, 2, 1, 2, 16, tm, 0);//弾画像の読み込み
+	LoadDivGraph("../Img/en_my.png", 10, 5, 2, 32, 16, chr, 0);//キャラクタ読み込み
+	LoadDivGraph("../Img/missile1.png", 2, 2, 1, 2, 16, tm, 0);//弾画像の読み込み
 	title = LoadGraph("../Img/title.bmp");//タイトル画像読み込み
 	bg = LoadGraph("../Img/bg.jpg");//ゲーム本編背景画像
 	GO = LoadGraph("../Img/gover.jpg");//ゲームオーバー画面
-	bk = LoadGraph("../Img/Black.png");//フェード用画面
-	wt = LoadGraph("../Img/white.png");//フェード用画面
+	cl = LoadGraph("../Img/gclear.jpg");//クリア画面
+	
 
 	FontHandle1 = CreateFontToHandle(NULL, 40, 4);//タイトル用フォントハンドラ;//フォントハンドラ１
 	FontHandle2 = CreateFontToHandle(NULL, 16, 8);//ゲーム用フォントハンドラ;//フォントハンドラ２
@@ -330,10 +330,6 @@ void game_main()
 		DrawGraph(70, 80, title, TRUE);//タイトルの表示
 		break;
 	case 10://ゲーム本編
-		
-
-		
-	
 		if (fade_mode == 1){//フェードイン
 			if (alpha <= 251){
 				alpha += 2;
@@ -341,11 +337,26 @@ void game_main()
 			}
 		}
 		else if (fade_mode == 2){//フェードアウト
-
-			if (alpha <= 0){
-				G_mode = 2;//ゲームオーバー
+			alpha -= 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+			if (alpha <= 0 ){
+							
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
+				G_mode = 2;//ゲームオーバー画面へ
+				break;
+				
+			}
+			
+		}
+		else if (fade_mode == 3){//フェードアウト
+
+			if (alpha <= 0){
+
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+				G_mode = 3;//クリア画面へ
+				break;
 
 			}
 			alpha -= 2;
@@ -402,7 +413,7 @@ void game_main()
 			jiki.shot = 1;//弾０の発射
 		}
 		///////////////////////////////////
-		void teki_nokori_chk();//敵の残りチェック
+		if (fade_mode!=3) teki_nokori_chk();//敵の残りチェック
 			
 		counter();
 	
@@ -422,8 +433,21 @@ void game_main()
 		}
 		break;
 		
+	case 3://クリア
+		if (alpha <= 251){
+			alpha += 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+		}
+		DrawGraph(0, 0, cl, TRUE);
+
+		if (alpha >= 253){
+			WaitKey();
+		}
+		break;
 		
 	}
+	
 }
 
 
@@ -461,8 +485,8 @@ void key_check()
 void haikei()
 {
 	DrawGraph(0, 0, bg, TRUE);//背景の表示関数
-	DrawFormatStringToHandle(64, 20, GetColor(120, 120, 120), FontHandle2, "Your Score %04d", ten.now);//現在スコアの表示
-	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(120, 120, 120), FontHandle2, "Hi-Score %04d", ten.high);//ハイスコアの表示
+	DrawFormatStringToHandle(64, 20, GetColor(255, 255, 255), FontHandle2, "Your Score %04d", ten.now);//現在スコアの表示
+	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(255, 255, 255), FontHandle2, "Hi-Score %04d", ten.high);//ハイスコアの表示
 
 }
 
@@ -529,7 +553,7 @@ void jikidan_idou(){//自機弾移動
 	}
 }
 void jikidan_hyouji(){//自機の弾表示関数
-	DrawGraph(tama.x, tama.y, tm[0], TRUE);//弾０描画
+	DrawGraph(tama.x, tama.y, tm[1], TRUE);//弾０描画
 }
 void zanki(){//残り自機表示
 
@@ -589,7 +613,7 @@ void tekidan_hyouji(){//敵弾表示
 		for (j = 0; j < 2; j++){
 			for (k = 0; k < 11; k++){
 				if (teki[i][j][k].shot == 1)
-					DrawGraph(teki[i][j][k].tama_x, teki[i][j][k].tama_y, tm[1], TRUE);//敵弾の表示
+					DrawGraph(teki[i][j][k].tama_x, teki[i][j][k].tama_y, tm[0], TRUE);//敵弾の表示
 			}
 		}
 	}
@@ -660,10 +684,10 @@ void gover_chk(){
 	for (i = 0; i < 3; i++){
 		for (j = 0; j < 2; j++){
 			for (k = 0; k < 11; k++){
-				if (teki[i][j][k].y >= jiki.y){
+				if (teki[i][j][k].y >= jiki.y && teki[i][j][k].dead==0){
 					stop = 1;
 					fade_mode = 2;
-					break;
+					return;
 				}
 			}
 		}
@@ -694,7 +718,17 @@ void teki_atari(){
 				if (tama.x + 2 >= teki[i][j][k].x + 4 && tama.x <= teki[i][j][k].x + 32 - 4 && tama.y <= teki[i][j][k].y + 16 && tama.y + 16 >= teki[i][j][k].y){
 					if (jiki.shot == 1 && teki[i][j][k].dead == 0){
 						
-						ten.now += 100;//100点プラス
+						switch (i){
+						case 0:
+							ten.now += 100;//100点プラス
+							break;
+						case 1:
+							ten.now += 50;//50点プラス
+							break;
+						case 2:
+							ten.now += 10;//10点プラス
+							break;
+						}
 						jiki.shot = 0;//弾フラグ０
 						teki[i][j][k].dead = 1;//敵死亡
 						teki_nokori--;//敵残りの数
@@ -723,16 +757,12 @@ void jiki_atari(){
 						teki[i][j][k].tama_y = -100;
 
 
-						//画面右にHIT表示
-
-						char c[20];
-						wsprintf(c, "HIT!");
-						DrawString(500, 128, c, GetColor(255, 255, 255));
-
 						if (jiki.life < 0){
 							alpha = 255;
 							stop = 1;
 							fade_mode = 2;//フェードアウト
+							return;
+							
 
 						}
 					}
@@ -778,19 +808,22 @@ void sentou_chk(){
 
 //敵の残りチェック
 void teki_nokori_chk(){
-	
 	if (teki_nokori <= 44)
 		en_cnt_MAX = 90;
-	if (teki_nokori <= 33)
+	else if (teki_nokori <= 33)
 		en_cnt_MAX = 80;
-	if (teki_nokori <= 22)
+	else if (teki_nokori <= 22)
 		en_cnt_MAX = 70;
-	if (teki_nokori <= 11)
+	else if (teki_nokori <= 11)
 		en_cnt_MAX = 60;
-	if (teki_nokori <= 5)
+	else if (teki_nokori <= 5)
 		en_cnt_MAX = 50;
-	if (teki_nokori <= 1)
+	else if (teki_nokori <= 1)
 		en_cnt_MAX = 30;
+	else if (teki_nokori == 0){
+		alpha = 0;
+		fade_mode = 3;//フェードアウト
+	}
 }
 
 
