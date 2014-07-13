@@ -5,24 +5,18 @@
 ************************************
 */
 
-//TODO
-
-//init で　全敵の設定
-
-
 //------ インクルードファイルの読み込み ------//
 #include "../../DxLib/DxLib.h"
 #include<windows.h>
 #include<time.h>
 #include <stdlib.h>
 
-
 //------ 関数のプロトタイプ宣言 ------//
+void start();//タイトル画面
 void key_check();           // キー情報取得
 void game_main();           // ゲームコントロールメイン
 void init();                // ゲームシステム初期化
 void haikei();//背景表示
-
 void hyouji_all();//表示全体
 void jikidan_hassha();//自機弾発射
 void jiki_hyouji();
@@ -35,77 +29,49 @@ void tekidan_hyouji();
 void tekidan_idou();
 void tekidan_hassha();
 void zanki();
-
 void teki_idou();//敵移動関数
-
 void haji_chk();
-
 void counter();//カウンタ関数
 void gover_chk();//敵が自分のラインに到達したらゲームオーバー
-
 void teki_atari();//自機弾と敵の当たり判定関数
 void jiki_atari();//敵弾と自機の当たり判定関数
 void sentou_chk();//敵の列の中で先頭が誰かチェック
 void teki_nokori_chk();//敵の残りチェック
-
 void sc_chk();//点数計算
-
+void fade();//フェード関数
+//関数宣言終わり
 
 //------ 変数の定義 ------//
 int key_trg, Key_Info, Key_Old;   // キー情報
 int ChkKAny;                             // とにかくキーが押されたらtrue
 int GLpCnt;                             // ゲームループカウンタ
-
 int i, j, k,l;//ループ用
-
-//キャラ画像のデータ
 int title;//タイトル画像読み込み用
 int bg; //ゲーム本編背景画像用
 int GO;//ゲームオーバー画面読み取り用
 int cl;//クリア画面用
-
-
 int chr[10];//キャラクター分割画像読み込み用変数
 int tm[2];//弾データ読み込み用変数
-
-
 int lx;//キャラクタ横の長さ
 int ly;//キャラクタ縦の長さ
-
-
 int G_mode;//ゲームモード切り替え用
 int T_Cnt;//タイトルのＰＵＳＨ　ＳＰＡＣＥ点滅用
-
 int migihaji;//右端のｘ座標を入れる変数
-
 int hidarihaji;//左端のｘ座標をいれる変数
 int stop;//端に行った時たてるフラグ
-
 int UFO=0;//UFOフラグ
-
-
 int FontHandle1;//タイトル用フォントハンドラ;//フォントハンドラ１用
 int FontHandle2;//ゲーム用フォントハンドラ;//フォントハンドラ２用
-
-
-
-
-
 int rd;//ランダム用変数
 int dead_cnt = 200;//死んだときのカウンタ
-
 int en_cnt_MAX = 100;//敵が何ループごとに動くか最大値
 int en_cnt = en_cnt_MAX;//敵が何ループごとに動くか
-
 int haji = 0;//敵が端に来たときのフラグ
-
 static signed int alpha;
 int fade_mode = 0;//１がフェードイン２がフェードアウト
-
 int sentou[5][11] = { 0 };
-
-int teki_nokori = 55;//敵の残り
-
+int  teki_nokori = 55;//敵の残り
+////変数終わり
 
 struct par{
 
@@ -137,21 +103,14 @@ struct par{
 
 };//各キャラのパラメータ
 
-
 struct par teki[3][2][11];///敵の構造体宣言（強さ、何段目か、何列目）	
-
 
 struct score{
 	int now;//現在スコア
 	int high;//ハイスコア
 }ten = { 0, 0 };
-
 struct par jiki;//自機の構造体宣言
 struct par tama[5];//発射した弾
-
-
-
-
 
 /**********************
 *    Main program    *
@@ -195,7 +154,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DxLib_End();                                // ＤＸライブラリ使用の終了処理
 	return 0;                                   // アプリケーションの終了
 }
-
 
 /*-----------------------------
 *    ゲームシステム初期化    *
@@ -315,37 +273,8 @@ void game_main()
 	{
 
 	case 0:
-
-		DrawGraph(70, 80, title, TRUE);//タイトルの表示
-
-
-		//スペースキーを押してください画面
-		if (T_Cnt > 10)
-		{
-
-			DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 219, 255), FontHandle1); //文字を画面中央に表示　
-		}
-		else if (T_Cnt > 0)
-		{
-
-			DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 0, 0), FontHandle1); //文字を画面中央に表示
-		}
-		else if (T_Cnt == 0)
-		{
-			T_Cnt = 20;
-		}
-
-		if (CheckHitKey(KEY_INPUT_SPACE))
-		{
-			G_mode = 1;//ゲーム本編へ
-			DeleteFontToHandle(FontHandle1);//フォントハンドラ１を捨てる
-			alpha = 255;
-		}
-
-		T_Cnt--;//カウンタを引く
+		start();//スタート画面
 		break;
-
-
 	case 1://タイトルのフェードアウト
 		if (alpha <= 0) {
 			G_mode = 10;//ゲーム本編へ
@@ -358,70 +287,36 @@ void game_main()
 		DrawGraph(70, 80, title, TRUE);//タイトルの表示
 		break;
 	case 10://ゲーム本編
-
-
-		if (fade_mode == 1){//フェードイン
-			if (alpha <= 251){
-				alpha += 2;
-				SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-			}
-		}
-		else if (fade_mode == 2){//フェードアウト
-					if (alpha <= 2){
-				G_mode = 2;//ゲームオーバー画面へ
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-				break;
-
-			}
-			alpha -= 2;
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		
+		fade();//フェードイン/アウト
 			
-		}
-		else if (fade_mode == 3){//フェードアウト
-						if (alpha <= 2){
-				G_mode = 3;//クリア画面へ
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-				break;
-						}
-			alpha -= 2;
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-					}
-
-
-
-		////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-		//敵関係
+		
 		if (stop == 0){
 			tekidan_hassha();//敵弾発射
+			teki_atari();//自機の弾と敵の当たりチェック
 			gover_chk();//敵が自分のラインに到達したらゲームオーバー
 			jiki_atari();//敵弾と自機の当たりチェック
 			jiki_sousa();//自機の移動
-			///////////////////////////////////
+			
+			teki_idou();//敵移動関数
+			haji_chk();
+			jikidan_idou();//自機弾移動
+			tekidan_idou();//敵弾移動
 		}
 
+		
 		sentou_chk();//列で誰が先頭にいるか
-		teki_atari();//自機の弾と敵の当たりチェック
-		teki_idou();//敵移動関数
-		haji_chk();
-		jikidan_idou();//自機弾移動
-		tekidan_idou();//敵弾移動
+
+		
+			teki_nokori_chk();//敵の残りチェック
+		
+		
+	
 		hyouji_all();//表示関数
 
-
-		/////////////////////////////////////////////////////////////////
-
-
-		//キー処理/////////////////
 		
-		if (fade_mode != 3) teki_nokori_chk();//敵の残りチェック
 
 		counter();
-
-
 		break;
 
 	case 2://ゲームオーバー
@@ -429,7 +324,7 @@ void game_main()
 			alpha += 2;
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
-		}else if (alpha >= 253)	WaitKey();
+		}else if (alpha >= 252)	WaitKey();
 		DrawGraph(0, 0, GO, TRUE);
 		break;
 	case 3://クリア
@@ -437,21 +332,15 @@ void game_main()
 			alpha += 2;
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
-		}
-		DrawGraph(0, 0, cl, TRUE);
-
-		if (alpha >= 253){
+		}else if (alpha >= 252){
+			sc_chk();
 			WaitKey();
 		}
-
-
-		sc_chk();
+		DrawGraph(0, 0, cl, TRUE);		
 		break;
-
 	}
 
 }
-
 
 /*---------------------
 *    キー情報取得    *
@@ -490,6 +379,36 @@ void haikei()
 	DrawFormatStringToHandle(64, 20, GetColor(255, 255, 255), FontHandle2, "Your Score %04d", ten.now);//現在スコアの表示
 	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(255, 255, 255), FontHandle2, "Hi-Score %04d", ten.high);//ハイスコアの表示
 
+}
+
+//フェード
+void fade(){
+	if (fade_mode == 1){//フェードイン
+		if (alpha <= 251){
+			alpha += 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		}
+	}
+	else if (fade_mode == 2){//フェードアウト
+		if (alpha <= 2){
+			G_mode = 2;//ゲームオーバー画面へ
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			//break;
+
+		}
+		alpha -= 2;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+	}
+	else if (fade_mode == 3){//フェードアウト
+		if (alpha <= 2){
+			G_mode = 3;//クリア画面へ
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			//break;
+		}
+		alpha -= 2;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+	}
 }
 
 //自機関係関数
@@ -540,9 +459,9 @@ void jiki_hyouji(){//自機の表示
 
 }
 
-// 自機の移動
+//自機の操作
 void jiki_sousa() {
-	//自機の操作
+	
 	if ((Key_Info & 0x01) == 0x01 && jiki.x > 31){
 		jiki.x -= jiki.sp;//左へ
 
@@ -556,7 +475,6 @@ void jiki_sousa() {
 	}
 }
 ///////////////////////////////////
-
 
 void jikidan_hassha(){
 
@@ -593,8 +511,7 @@ void zanki(){//残り自機表示
 	}
 }
 
-
-//敵関係関数
+//敵表示
 void teki_hyouji(){//敵表示
 	for (i = 0; i < 3; i++){
 		for (j = 0; j < 2; j++){
@@ -620,10 +537,7 @@ void teki_hyouji(){//敵表示
 	}
 }
 
-
-
-//////////////////////////////////////////////////////////////////////////////////
-
+//敵弾発射
 void tekidan_hassha(){
 	if (stop == 0){
 		for (i = 0; i < 3; i++){
@@ -649,6 +563,7 @@ void tekidan_hassha(){
 		}
 	}
 }
+
 void tekidan_hyouji(){//敵弾表示
 
 	for (i = 0; i < 3; i++){
@@ -680,8 +595,8 @@ void tekidan_idou(){
 		}
 	
 }
-//////////////////////
 
+//敵移動
 void teki_idou(){
 
 	
@@ -719,9 +634,6 @@ void teki_idou(){
 	
 }
 
-
-
-
 //敵が自分のラインに到達したらゲームオーバー
 void gover_chk(){
 	for (i = 0; i < 3; i++){
@@ -737,6 +649,7 @@ void gover_chk(){
 	}
 }
 
+//端に来たかどうか
 void haji_chk(){
 	for (i = 0; i < 3; i++){
 		for (j = 0; j < 2; j++){
@@ -751,7 +664,6 @@ void haji_chk(){
 		}
 	}
 }
-
 
 ///弾と敵の当たり判定
 void teki_atari(){
@@ -825,8 +737,7 @@ void jiki_atari(){
 	
 }
 
-
-
+//敵の先頭チェック
 void sentou_chk(){
 
 	for (i = 0; i < 11; i++){
@@ -862,47 +773,55 @@ void sentou_chk(){
 
 }
 
-//敵の残りチェック
+//敵の残りに応じた動作
 void teki_nokori_chk(){
+	if (fade_mode!=3  && fade_mode!=2){
+		if (teki_nokori == 3){
+			if (UFO == 0){
+				en_cnt_MAX = 5;
+				UFO = 1;
+				for (i = 0; i < 3; i++) {
+					for (j = 0; j < 2; j++) {
+						for (k = 0; k < 11; k++) {
+							teki[i][j][k].t_sp = 6;
+							for (l = 0; l < 10; l++) {
 
-	if (teki_nokori>0 &&teki_nokori <= 3 && UFO==0){
-		en_cnt_MAX = 5;
-		UFO = 1;
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j < 2; j++) {
-				for (k = 0; k < 11; k++) {
-					teki[i][j][k].t_sp = 6;
-					for (l = 0; l < 10; l++) {
-						
-						//teki[i][j][k].kankaku=teki[0][0][0].kankaku_sk;
-						teki[i][j][k].kankaku_sk = rand() % 25;
+								//teki[i][j][k].kankaku=teki[0][0][0].kankaku_sk;
+								teki[i][j][k].kankaku_sk = rand() % 25;
 
+							}
+						}
 					}
 				}
 			}
 		}
-	}
-	
-	else if (teki_nokori == 11)en_cnt_MAX = 30;
-	else if (teki_nokori == 22)en_cnt_MAX = 50;
-	else if (teki_nokori == 33)en_cnt_MAX = 70;
-	else if (teki_nokori == 44) en_cnt_MAX = 90;
-	
-	if (teki_nokori == 0){
-		alpha = 255;
-		fade_mode = 3;//フェードアウト
+		if (teki_nokori == 11){
+			en_cnt_MAX = 30;
+		}
+		if (teki_nokori == 22){
+			en_cnt_MAX = 50;
+		}
+		if (teki_nokori == 33){
+			en_cnt_MAX = 70;
+		}
+		if (teki_nokori == 44){
+			en_cnt_MAX = 90;
+		}
+		if (teki_nokori == 0){
+
+			alpha = 255;
+			fade_mode = 3;//フェードアウト
+		}
 	}
 }
 
-
+//スコアチェック
 void sc_chk(){
 
 	if (ten.now > ten.high) ten.high = ten.now;
 }
 
-
 //カウンタ関数
-
 void counter(){
 	if (jiki.dead == 0 && stop == 0){
 		jiki.count--;
@@ -923,5 +842,35 @@ void counter(){
 	}
 }
 
+//スタート画面
+void start(){
+	DrawGraph(70, 80, title, TRUE);//タイトルの表示
+
+
+	//スペースキーを押してください画面
+	if (T_Cnt > 10)
+	{
+
+		DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 219, 255), FontHandle1); //文字を画面中央に表示　
+	}
+	else if (T_Cnt > 0)
+	{
+
+		DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 0, 0), FontHandle1); //文字を画面中央に表示
+	}
+	else if (T_Cnt == 0)
+	{
+		T_Cnt = 20;
+	}
+
+	if (CheckHitKey(KEY_INPUT_SPACE))
+	{
+		G_mode = 1;//ゲーム本編へ
+		DeleteFontToHandle(FontHandle1);//フォントハンドラ１を捨てる
+		alpha = 255;
+	}
+
+	T_Cnt--;//カウンタを引く
+}
 
 
