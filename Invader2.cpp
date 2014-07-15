@@ -5,24 +5,24 @@
 ************************************
 */
 
-//TODO
-
-//init で　全敵の設定
-
-
 //------ インクルードファイルの読み込み ------//
-#include "../../DxLib/DxLib.h"
+#include "../DxLib/DxLib.h"
 #include<windows.h>
 #include<time.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 
+#define kazu 5
+#define jikidan_kankaku 10;
+=======
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
 //------ 関数のプロトタイプ宣言 ------//
+void start();//タイトル画面
 void key_check();           // キー情報取得
 void game_main();           // ゲームコントロールメイン
 void init();                // ゲームシステム初期化
 void haikei();//背景表示
-
 void hyouji_all();//表示全体
 void jikidan_hassha();//自機弾発射
 void jiki_hyouji();
@@ -35,77 +35,60 @@ void tekidan_hyouji();
 void tekidan_idou();
 void tekidan_hassha();
 void zanki();
-
 void teki_idou();//敵移動関数
-
 void haji_chk();
-
 void counter();//カウンタ関数
 void gover_chk();//敵が自分のラインに到達したらゲームオーバー
-
 void teki_atari();//自機弾と敵の当たり判定関数
 void jiki_atari();//敵弾と自機の当たり判定関数
 void sentou_chk();//敵の列の中で先頭が誰かチェック
 void teki_nokori_chk();//敵の残りチェック
-
 void sc_chk();//点数計算
-
+void fade();//フェード関数
+//関数宣言終わり
 
 //------ 変数の定義 ------//
-int key_trg, Key_Info, Key_Old;   // キー情報
+int Key_Trg, Key_Info, Key_Old;   // キー情報
 int ChkKAny;                             // とにかくキーが押されたらtrue
 int GLpCnt;                             // ゲームループカウンタ
-
 int i, j, k,l;//ループ用
-
-//キャラ画像のデータ
 int title;//タイトル画像読み込み用
 int bg; //ゲーム本編背景画像用
 int GO;//ゲームオーバー画面読み取り用
 int cl;//クリア画面用
-
-
 int chr[10];//キャラクター分割画像読み込み用変数
 int tm[2];//弾データ読み込み用変数
-
-
 int lx;//キャラクタ横の長さ
 int ly;//キャラクタ縦の長さ
-
-
 int G_mode;//ゲームモード切り替え用
 int T_Cnt;//タイトルのＰＵＳＨ　ＳＰＡＣＥ点滅用
-
 int migihaji;//右端のｘ座標を入れる変数
-
 int hidarihaji;//左端のｘ座標をいれる変数
 int stop;//端に行った時たてるフラグ
-
 int UFO=0;//UFOフラグ
-
-
 int FontHandle1;//タイトル用フォントハンドラ;//フォントハンドラ１用
 int FontHandle2;//ゲーム用フォントハンドラ;//フォントハンドラ２用
-
-
-
-
-
 int rd;//ランダム用変数
-int dead_cnt = 200;//死んだときのカウンタ
-
+<<<<<<< HEAD
+int dead_cnt;//死んだときのカウンタ
 int en_cnt_MAX = 100;//敵が何ループごとに動くか最大値
 int en_cnt = en_cnt_MAX;//敵が何ループごとに動くか
-
+int haji ;//敵が端に来たときのフラグ
+static signed int alpha;
+int fade_mode=0 ;//１がフェードイン２がフェードアウト
+int sentou[5][11] = { 0 };
+int  teki_nokori ;//敵の残り
+=======
+int dead_cnt = 200;//死んだときのカウンタ
+int en_cnt_MAX = 100;//敵が何ループごとに動くか最大値
+int en_cnt = en_cnt_MAX;//敵が何ループごとに動くか
 int haji = 0;//敵が端に来たときのフラグ
-
 static signed int alpha;
 int fade_mode = 0;//１がフェードイン２がフェードアウト
-
 int sentou[5][11] = { 0 };
-
-int teki_nokori = 55;//敵の残り
-
+int  teki_nokori = 55;//敵の残り
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
+////変数終わり
 
 struct par{
 
@@ -130,28 +113,35 @@ struct par{
 	int tama_y[10];
 
 	int sentou;//今先頭にいるかどうか
+<<<<<<< HEAD
+
+	int flag;//
+
+	int tama_cnt;//自機弾の間隔
+
+
+
+=======
 
 	int flag;//
 
 
 
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 };//各キャラのパラメータ
 
-
 struct par teki[3][2][11];///敵の構造体宣言（強さ、何段目か、何列目）	
-
 
 struct score{
 	int now;//現在スコア
 	int high;//ハイスコア
 }ten = { 0, 0 };
-
 struct par jiki;//自機の構造体宣言
+<<<<<<< HEAD
+struct par tama[kazu];//発射した弾
+=======
 struct par tama[5];//発射した弾
-
-
-
-
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
 /**********************
 *    Main program    *
@@ -196,7 +186,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return 0;                                   // アプリケーションの終了
 }
 
-
 /*-----------------------------
 *    ゲームシステム初期化    *
 *-----------------------------
@@ -224,6 +213,24 @@ void init()
 	hidarihaji = 30;//キャラクタ描写領域左端のｘ座標
 	stop = 0;//敵全体をストップする
 
+<<<<<<< HEAD
+	teki_nokori=55;//敵の残り
+
+	dead_cnt=200;//自機死亡カウント初期値
+
+	en_cnt = en_cnt_MAX;//敵が何ループごとに動くか
+	haji = 0;//敵が端に来たときのフラグ
+
+
+	for(i=0;i<5;i++){
+		for(j=0;i<11;i++)
+		{
+    sentou[i][j] =  0;
+		}
+	}
+
+=======
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
 
 	lx = 32;//キャラクタ横の長さ
@@ -237,11 +244,77 @@ void init()
 	ten.now = 0;//現在スコアの初期化
 
 
+<<<<<<< HEAD
+	jiki.tama_cnt=jikidan_kankaku;
 
+	UFO=0;//UFOフラグ０
+=======
+
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
 
 	for (k = 0; k < 11; k++){
 
+<<<<<<< HEAD
+	for (k = 0; k < 11; k++){
+
+		teki[0][0][k].y = ly * 5;//緑の敵の初期ｙ座標
+		teki[0][0][k].t_sp = 6;//弾の速さ
+
+		teki[1][0][k].y = ly * 7;//水色１初期ｙ座標
+		teki[1][0][k].t_sp = 4;//弾の速さ
+
+		teki[1][1][k].y = ly * 9;//水色２初期ｙ座標
+		
+		teki[1][1][k].t_sp = 4;//弾の速さ
+
+		teki[2][0][k].y = ly * 11;//紫１初期ｙ座標
+		teki[2][0][k].t_sp = 3;//弾の速さ
+
+		teki[2][1][k].y = ly * 13;//紫２初期ｙ座標
+		teki[2][1][k].t_sp = 3;//弾の速さ
+
+		for (l = 0; l < 10; l++){
+			teki[0][0][k].kankaku_sk = rand() % 25 + 50;//緑の敵の弾うち間隔
+			teki[0][0][k].kankaku = teki[0][0][k].kankaku_sk;
+
+			teki[1][0][k].kankaku_sk = rand() % 50 + 100;//水色1敵の弾うち間隔
+			teki[1][0][k].kankaku = teki[1][0][k].kankaku_sk;
+
+			teki[1][1][k].kankaku_sk = rand() % 50 + 100;//水色2敵の弾うち間隔
+			teki[1][1][k].kankaku = teki[1][1][k].kankaku_sk;
+
+			teki[2][0][k].kankaku_sk = rand() % 50 + 200;//紫１敵の弾うち間隔
+			teki[2][0][k].kankaku = teki[2][0][k].kankaku_sk;
+
+			teki[2][1][k].kankaku_sk = rand() % 50 + 200;//紫２敵の弾うち間隔
+			teki[2][1][k].kankaku = teki[2][1][k].kankaku_sk;
+
+			
+			
+		}
+
+
+		for (j = 0; j < 2; j++){
+			for (i = 0; i < 3; i++){
+				for (l = 0; l < 10; l++){
+					teki[i][j][k].shot[l] = 0;//敵ショットフラグ０
+				}
+				
+				teki[i][j][k].x = (lx - 1) + lx*k;//緑の敵のｘ座標
+			
+				teki[i][j][k].sp = lx / 2;//敵の一回の移動距離
+				teki[i][j][k].dead = 0;//敵に弾が当たったかどうか（１で当たり）
+			}
+		}
+		teki[0][1][k].dead = 1;//余分な敵を殺す
+	}
+	for (i = 0; i < kazu; i++){
+		tama[i].flag = 0;//弾が出ていない
+	}
+}
+
+=======
 		teki[0][0][k].y = ly * 5;//緑の敵の初期ｙ座標
 		teki[0][0][k].t_sp = 6;//弾の速さ
 
@@ -303,6 +376,7 @@ void init()
 
 }
 
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 /**********************************
 *    ゲームコントロールメイン    *
 **********************************
@@ -315,37 +389,8 @@ void game_main()
 	{
 
 	case 0:
-
-		DrawGraph(70, 80, title, TRUE);//タイトルの表示
-
-
-		//スペースキーを押してください画面
-		if (T_Cnt > 10)
-		{
-
-			DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 219, 255), FontHandle1); //文字を画面中央に表示　
-		}
-		else if (T_Cnt > 0)
-		{
-
-			DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 0, 0), FontHandle1); //文字を画面中央に表示
-		}
-		else if (T_Cnt == 0)
-		{
-			T_Cnt = 20;
-		}
-
-		if (CheckHitKey(KEY_INPUT_SPACE))
-		{
-			G_mode = 1;//ゲーム本編へ
-			DeleteFontToHandle(FontHandle1);//フォントハンドラ１を捨てる
-			alpha = 255;
-		}
-
-		T_Cnt--;//カウンタを引く
+		start();//スタート画面
 		break;
-
-
 	case 1://タイトルのフェードアウト
 		if (alpha <= 0) {
 			G_mode = 10;//ゲーム本編へ
@@ -355,81 +400,116 @@ void game_main()
 		}
 		alpha -= 4;
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+<<<<<<< HEAD
+ 		DrawGraph(70, 80, title, TRUE);//タイトルの表示
+=======
 		DrawGraph(70, 80, title, TRUE);//タイトルの表示
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 		break;
 	case 10://ゲーム本編
-
-
-		if (fade_mode == 1){//フェードイン
-			if (alpha <= 251){
-				alpha += 2;
-				SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-			}
-		}
-		else if (fade_mode == 2){//フェードアウト
-					if (alpha <= 2){
-				G_mode = 2;//ゲームオーバー画面へ
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-				break;
-
-			}
-			alpha -= 2;
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		
+		fade();//フェードイン/アウト
 			
-		}
-		else if (fade_mode == 3){//フェードアウト
-						if (alpha <= 2){
-				G_mode = 3;//クリア画面へ
-				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-				break;
-						}
-			alpha -= 2;
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-					}
-
-
-
-		////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-		//敵関係
+		
 		if (stop == 0){
 			tekidan_hassha();//敵弾発射
+			teki_atari();//自機の弾と敵の当たりチェック
 			gover_chk();//敵が自分のラインに到達したらゲームオーバー
 			jiki_atari();//敵弾と自機の当たりチェック
 			jiki_sousa();//自機の移動
-			///////////////////////////////////
+			
+			teki_idou();//敵移動関数
+			haji_chk();
+			jikidan_idou();//自機弾移動
+			tekidan_idou();//敵弾移動
 		}
+<<<<<<< HEAD
 
+		
 		sentou_chk();//列で誰が先頭にいるか
-		teki_atari();//自機の弾と敵の当たりチェック
-		teki_idou();//敵移動関数
-		haji_chk();
-		jikidan_idou();//自機弾移動
-		tekidan_idou();//敵弾移動
+
+		
+			teki_nokori_chk();//敵の残りチェック
+		
+		
+	
 		hyouji_all();//表示関数
 
-
-		/////////////////////////////////////////////////////////////////
-
-
-		//キー処理/////////////////
 		
-		if (fade_mode != 3) teki_nokori_chk();//敵の残りチェック
 
 		counter();
+		break;
 
+	case 2://ゲームオーバー
+		sc_chk();
 
+		if (alpha <= 251){
+			alpha += 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+		}else{
+			WaitKey();
+			
+			if(GetKeyState(0x52)<0){
+				init();
+				fade_mode=1;
+				G_mode=10;
+				
+			}
+
+		}
+		//DrawGraph(0, 0, GO, TRUE);
+	
+
+			SetFontSize(64);// 文字の大きさを指定する
+            DrawFormatString(100, 20, GetColor(255, 50, 50), "ゲームオーバー"); 
+			DrawFormatString(40, 120, GetColor(255,50,50), "スコア:%d点", ten.now); //　現在の点数
+			DrawFormatString(40, 190, GetColor(255,50,50), "ハイスコア:%d点", ten.high); //　ハイスコア
+
+			DrawFormatString(40, 290, GetColor(255,50,50), "もう一度:R"); //　現在の点数
+			DrawFormatString(40, 360, GetColor(255,50,50), "やめる:ESC"); //　ハイスコア
+	      
+			
+		break;
+	case 3://クリア
+		sc_chk();
+		if (alpha <= 251){
+			alpha += 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+		}else {
+			
+			WaitKey();
+			if(GetKeyState(0x52)<0){
+				init();
+				fade_mode=1;
+				G_mode=10;
+				//G_mode=10;//ゲームへ
+			}
+=======
+
+		
+		sentou_chk();//列で誰が先頭にいるか
+
+		
+			teki_nokori_chk();//敵の残りチェック
+		
+		
+	
+		hyouji_all();//表示関数
+
+		
+
+		counter();
 		break;
 
 	case 2://ゲームオーバー
 		if (alpha <= 251){
 			alpha += 2;
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
-		}else if (alpha >= 253)	WaitKey();
+		}else if (alpha >= 252)	WaitKey();
 		DrawGraph(0, 0, GO, TRUE);
 		break;
 	case 3://クリア
@@ -437,21 +517,83 @@ void game_main()
 			alpha += 2;
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
-		}
-		DrawGraph(0, 0, cl, TRUE);
-
-		if (alpha >= 253){
+		}else if (alpha >= 252){
+			sc_chk();
 			WaitKey();
 		}
+<<<<<<< HEAD
+		SetFontSize(64);// 文字の大きさを指定する		
+			DrawFormatString(100, 20, GetColor(0, 219, 255), "クリア"); 
+			DrawFormatString(40, 90, GetColor(0, 219, 255), "スコア　:%d点", ten.now); //　現在の点数
+			DrawFormatString(40, 160, GetColor(0, 219, 255), "ハイスコア　:%d点", ten.high); //　ハイスコア
 
-
-		sc_chk();
+			
+			DrawFormatString(40, 290, GetColor(0,219,255), "もう一度:R"); //　現在の点数
+			DrawFormatString(40, 360, GetColor(0,219,255), "やめる:ESC"); //　ハイスコア
+			
+		//DrawGraph(0, 0, cl, TRUE);		
+=======
+		DrawGraph(0, 0, cl, TRUE);		
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 		break;
-
 	}
 
 }
+<<<<<<< HEAD
 
+/*---------------------
+*    キー情報取得    *
+*---------------------
+*
+*    LEFT  = 0000 0001
+*    RIGHT = 0000 0010
+*    UP    = 0000 0100
+*    DOWN  = 0000 1000
+*    key_trgは押した瞬間の情報
+*    key_infoは今の状態
+*
+*/
+void key_check()
+{
+	Key_Trg = Key_Info = 0;                                 // キー情報クリア
+	ChkKAny = false;
+
+	if (CheckHitKey(KEY_INPUT_LEFT))   { Key_Info |= 0x01; }
+	if (CheckHitKey(KEY_INPUT_RIGHT))  { Key_Info |= 0x02; }
+	if (CheckHitKey(KEY_INPUT_UP))     { Key_Info |= 0x04; }
+	if (CheckHitKey(KEY_INPUT_DOWN))   { Key_Info |= 0x08; }
+
+	if (CheckHitKey(KEY_INPUT_SPACE))  { Key_Info |= 0x10; }
+	if (CheckHitKey(KEY_INPUT_Z))      { Key_Info |= 0x20; }
+	if (CheckHitKey(KEY_INPUT_ESCAPE)) { Key_Info |= 0x40; }
+	if (CheckHitKeyAll()) { ChkKAny = true; }                    // あにー
+	Key_Trg = (Key_Info ^ Key_Old) & Key_Info;          // キートリガー情報セット
+	Key_Old = Key_Info;                                     // キー情報セーブ
+}
+
+/////////  表示関係  //////////////////////
+void haikei()
+{
+	DrawGraph(0, 0, bg, TRUE);//背景の表示関数
+	DrawFormatStringToHandle(64, 20, GetColor(255, 255, 255), FontHandle2, "Your Score %04d", ten.now);//現在スコアの表示
+	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(255, 255, 255), FontHandle2, "Hi-Score %04d", ten.high);//ハイスコアの表示
+
+}
+
+//フェード
+void fade(){
+	if (fade_mode == 1){//フェードイン
+		if (alpha <= 251){
+			alpha += 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		}
+	}
+	else if (fade_mode == 2){//フェードアウト
+		if (alpha <= 2){
+			G_mode = 2;//ゲームオーバー画面へ
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			//break;
+=======
 
 /*---------------------
 *    キー情報取得    *
@@ -491,6 +633,30 @@ void haikei()
 	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(255, 255, 255), FontHandle2, "Hi-Score %04d", ten.high);//ハイスコアの表示
 
 }
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
+
+//フェード
+void fade(){
+	if (fade_mode == 1){//フェードイン
+		if (alpha <= 251){
+			alpha += 2;
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		}
+<<<<<<< HEAD
+		alpha -= 2;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+	}
+	else if (fade_mode == 3){//フェードアウト
+		if (alpha <= 2){
+			G_mode = 3;//クリア画面へ
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			//break;
+		}
+		alpha -= 2;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+	}
+}
 
 //自機関係関数
 void hyouji_all(){
@@ -500,6 +666,39 @@ void hyouji_all(){
 
 	////自機の弾表示関係
 
+=======
+	}
+	else if (fade_mode == 2){//フェードアウト
+		if (alpha <= 2){
+			G_mode = 2;//ゲームオーバー画面へ
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			//break;
+
+		}
+		alpha -= 2;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+	}
+	else if (fade_mode == 3){//フェードアウト
+		if (alpha <= 2){
+			G_mode = 3;//クリア画面へ
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			//break;
+		}
+		alpha -= 2;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+	}
+}
+
+//自機関係関数
+void hyouji_all(){
+	//背景・スコア表示
+	haikei();
+	zanki();
+
+	////自機の弾表示関係
+
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 	
 
 
@@ -536,13 +735,15 @@ void jiki_hyouji(){//自機の表示
 			DrawGraph(jiki.x, jiki.y, chr[6], TRUE);//自機の表示
 		
 	}
+<<<<<<< HEAD
+=======
 
 
 }
 
-// 自機の移動
+//自機の操作
 void jiki_sousa() {
-	//自機の操作
+	
 	if ((Key_Info & 0x01) == 0x01 && jiki.x > 31){
 		jiki.x -= jiki.sp;//左へ
 
@@ -557,7 +758,6 @@ void jiki_sousa() {
 }
 ///////////////////////////////////
 
-
 void jikidan_hassha(){
 
 	for (i = 0; i < 5; i++){
@@ -569,6 +769,7 @@ void jikidan_hassha(){
 	}
 }
 void jikidan_idou(){//自機弾移動
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
 	for (i = 0; i < 5; i++){
 		if (tama[i].flag == 1){
@@ -587,14 +788,67 @@ void jikidan_hyouji(){//自機の弾表示関数
 }
 void zanki(){//残り自機表示
 
+<<<<<<< HEAD
+}
+
+//自機の操作
+void jiki_sousa() {
+	
+	if ((Key_Info & 0x01)== 0x01 && jiki.x > 31){
+		jiki.x -= jiki.sp;//左へ
+
+	}
+	if ((Key_Info & 0x02) == 0x02 && jiki.x + lx < 450 + 31){
+		jiki.x += jiki.sp;//右へ
+
+	}
+	//if (Key_Trg == 0x10){
+		if ( (Key_Info & 0x10) == 0x10 ){
+			if(jiki.tama_cnt<=0){
+				jiki.tama_cnt=jikidan_kankaku;
+				
+		jikidan_hassha();//自機弾発射
+			}
+	}
+}
+///////////////////////////////////
+
+void jikidan_hassha(){
+
+	for (i = 0; i < kazu; i++){
+		if (tama[i].flag == 0 && stop == 0){
+			tama[i].x = jiki.x + 15; tama[i].y = jiki.y;//弾に現在の自機座標代入
+			tama[i].flag = 1;//弾０の発射
+			return;
+		}
+	}
+}
+void jikidan_idou(){//自機弾移動
+
+	for (i = 0; i < kazu; i++){
+		if (tama[i].flag == 1){
+			tama[i].y -= jiki.t_sp;//弾のｙ座標を引く
+			if (tama[i].y + 16 < 0)//自機弾が上に達したらフラグ０
+				tama[i].flag = 0;
+		}
+	}
+}
+void jikidan_hyouji(){//自機の弾表示関数
+	for (i = 0; i < kazu; i++){
+		if (tama[i].flag == 1){
+			DrawGraph(tama[i].x, tama[i].y, tm[1], TRUE);//弾０描画
+		}
+	}
+}
+void zanki(){//残り自機表示
+=======
 	for (i = 0; i < jiki.life; i++){
 		DrawGraph(480 - lx*(1 + i), 480 - ly, chr[3], TRUE);//自機の表示
 
 	}
 }
 
-
-//敵関係関数
+//敵表示
 void teki_hyouji(){//敵表示
 	for (i = 0; i < 3; i++){
 		for (j = 0; j < 2; j++){
@@ -620,10 +874,7 @@ void teki_hyouji(){//敵表示
 	}
 }
 
-
-
-//////////////////////////////////////////////////////////////////////////////////
-
+//敵弾発射
 void tekidan_hassha(){
 	if (stop == 0){
 		for (i = 0; i < 3; i++){
@@ -649,6 +900,7 @@ void tekidan_hassha(){
 		}
 	}
 }
+
 void tekidan_hyouji(){//敵弾表示
 
 	for (i = 0; i < 3; i++){
@@ -680,15 +932,42 @@ void tekidan_idou(){
 		}
 	
 }
-//////////////////////
 
+//敵移動
 void teki_idou(){
 
 	
 		en_cnt--;
 		if (haji == 0){
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 
+	for (i = 0; i < jiki.life; i++){
+		DrawGraph(480 - lx*(1 + i), 480 - ly, chr[3], TRUE);//自機の表示
 
+<<<<<<< HEAD
+	}
+}
+
+//敵表示
+void teki_hyouji(){//敵表示
+	for (i = 0; i < 3; i++){
+		for (j = 0; j < 2; j++){
+			for (k = 0; k < 11; k++){
+				if (teki[i][j][k].dead == 0){
+					if (UFO == 0){
+						if (i == 0){
+							DrawGraph(teki[i][0][k].x, teki[i][0][k].y, chr[2], TRUE);//敵１（緑）表示
+						}
+						else if (i == 1){
+							DrawGraph(teki[i][j][k].x, teki[i][j][k].y, chr[1], TRUE);//敵２（水色）表示
+						}
+						else if (i == 2){
+							DrawGraph(teki[i][j][k].x, teki[i][j][k].y, chr[0], TRUE);//敵3（紫）表示
+						}
+					}
+					else{
+						DrawGraph(teki[i][j][k].x, teki[i][j][k].y,chr[4] , TRUE);//UFO表示
+=======
 			if (en_cnt == 0){
 				en_cnt = en_cnt_MAX;
 				for (i = 0; i < 3; i++){
@@ -697,10 +976,50 @@ void teki_idou(){
 
 							teki[i][j][k].x += teki[i][j][k].sp;
 						}
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 					}
 				}
 			}
 		}
+<<<<<<< HEAD
+	}
+}
+
+//敵弾発射
+void tekidan_hassha(){
+	if (stop == 0){
+		for (i = 0; i < 3; i++){
+			for (j = 0; j < 2; j++){
+				for (k = 0; k < 11; k++){
+					teki[i][j][k].kankaku--;
+					
+					
+
+					if (teki[i][j][k].dead == 0 && teki[i][j][k].sentou == 1){
+						for (l = 0; l < 10; l++){
+							if (teki[i][j][k].kankaku <= 0 && teki[i][j][k].shot[l] == 0 && stop == 0){
+								teki[i][j][k].kankaku = teki[i][j][k].kankaku_sk;
+								teki[i][j][k].shot[l] = 1;//玉フラグ１
+								teki[i][j][k].tama_x[l] = teki[i][j][k].x + 15;
+								teki[i][j][k].tama_y[l] = teki[i][j][k].y;
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void tekidan_hyouji(){//敵弾表示
+
+	for (i = 0; i < 3; i++){
+		for (j = 0; j < 2; j++){
+			for (k = 0; k < 11; k++){
+				for (l = 0; l < 10; l++){
+					if (teki[i][j][k].shot[l] == 1)DrawGraph(teki[i][j][k].tama_x[l], teki[i][j][k].tama_y[l], tm[0], TRUE);//敵弾の表示
+=======
 		else{
 			if (en_cnt == 0){
 				en_cnt = en_cnt_MAX;
@@ -719,9 +1038,6 @@ void teki_idou(){
 	
 }
 
-
-
-
 //敵が自分のラインに到達したらゲームオーバー
 void gover_chk(){
 	for (i = 0; i < 3; i++){
@@ -731,12 +1047,28 @@ void gover_chk(){
 					stop = 1;
 					fade_mode = 2;
 					return;
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 				}
 			}
 		}
 	}
 }
 
+<<<<<<< HEAD
+//敵弾移動
+void tekidan_idou(){
+	
+		for (i = 0; i < 3; i++){
+			for (j = 0; j < 2; j++){
+				for (k = 0; k < 11; k++){
+					for (l = 0; l < 10; l++){
+						if (teki[i][j][k].shot[l] == 1){
+							teki[i][j][k].tama_y[l] += teki[i][j][k].t_sp;//敵弾のｙ座標を下に
+							if (teki[i][j][k].tama_y[l] + 16 >= 640)
+								teki[i][j][k].shot[l] = 0;//敵弾フラグ０
+						}
+=======
+//端に来たかどうか
 void haji_chk(){
 	for (i = 0; i < 3; i++){
 		for (j = 0; j < 2; j++){
@@ -745,13 +1077,36 @@ void haji_chk(){
 					if (teki[i][j][k].dead == 0){
 						haji = 1;
 						break;
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 					}
 				}
 			}
 		}
-	}
+<<<<<<< HEAD
+	
 }
 
+//敵移動
+void teki_idou(){
+
+	
+		en_cnt--;
+		if (haji == 0){
+
+
+			if (en_cnt == 0){
+				en_cnt = en_cnt_MAX;
+				for (i = 0; i < 3; i++){
+					for (j = 0; j < 2; j++){
+						for (k = 0; k < 11; k++){
+
+							teki[i][j][k].x += teki[i][j][k].sp;
+						}
+					}
+				}
+=======
+	}
+}
 
 ///弾と敵の当たり判定
 void teki_atari(){
@@ -819,14 +1174,128 @@ void jiki_atari(){
 					}
 				}
 
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 			}
+		}
+		else{
+			if (en_cnt == 0){
+				en_cnt = en_cnt_MAX;
+				for (i = 0; i < 3; i++){
+					for (j = 0; j < 2; j++){
+						for (k = 0; k < 11; k++){
+							teki[i][j][k].y += lx;
+							teki[i][j][k].sp = ~teki[i][j][k].sp + 1;
+							haji = 0;
+						}
+					}
+				}
 
+<<<<<<< HEAD
+			}
+=======
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 		}
 	
 }
 
+<<<<<<< HEAD
+//敵が自分のラインに到達したらゲームオーバー
+void gover_chk(){
+	for (i = 0; i < 3; i++){
+		for (j = 0; j < 2; j++){
+			for (k = 0; k < 11; k++){
+				if (teki[i][j][k].y >= jiki.y && teki[i][j][k].dead == 0){
+					stop = 1;
+					fade_mode = 2;
+					return;
+				}
+			}
+		}
+	}
+}
 
+//端に来たかどうか
+void haji_chk(){
+	for (i = 0; i < 3; i++){
+		for (j = 0; j < 2; j++){
+			for (k = 0; k < 11; k++){
+				if ((teki[i][j][k].x + 32 >= 480 - 1 && teki[i][j][k].sp>0) || (teki[i][j][k].x <= 31 && teki[i][j][k].sp < 0)){
+					if (teki[i][j][k].dead == 0){
+						haji = 1;
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 
+///弾と敵の当たり判定
+void teki_atari(){
+
+		for (i = 0; i < 3; i++){
+			for (j = 0; j < 2; j++){
+				for (k = 0; k < 11; k++){
+					for (l = 0; l < kazu; l++){
+						if (tama[l].x + 2 >= teki[i][j][k].x + 4 && tama[l].x <= teki[i][j][k].x + 32 - 4 && tama[l].y <= teki[i][j][k].y + 16 && tama[l].y + 16 >= teki[i][j][k].y){
+							if (tama[l].flag == 1 && teki[i][j][k].dead == 0){
+
+								tama[l].flag = 0;//弾フラグ０
+								teki[i][j][k].dead = 1;//敵死亡
+								teki_nokori--;//敵残りの数
+								switch (i){
+								case 0:
+									ten.now += 100;//100点プラス
+									break;
+								case 1:
+									ten.now += 50;//50点プラス
+									break;
+								case 2:
+									ten.now += 10;//10点プラス
+									break;
+								}
+								
+							}
+						}
+					}
+				}
+			}
+		}
+	
+}
+
+// 敵弾が自機に当たった時
+void jiki_atari(){
+	
+		for (i = 0; i < 3; i++){
+			for (j = 0; j < 2; j++){
+				for (k = 0; k < 11; k++){
+					for (l = 0; l<10; l++){
+						if (teki[i][j][k].tama_x[l] + 2 > jiki.x && teki[i][j][k].tama_x[l] < jiki.x + 32 && teki[i][j][k].tama_y[l]<jiki.y + 16 && teki[i][j][k].tama_y[l] + 16>jiki.y){
+							if (jiki.dead == 0 && teki[i][j][k].shot[l] == 1 && stop==0){
+								stop = 1;
+								jiki.dead = 1;
+								teki[i][j][k].shot[l] = 0;
+
+								teki[i][j][k].kankaku = teki[i][j][k].kankaku_sk;
+								jiki.life--;//自機ライフーー
+								teki[i][j][k].tama_x[l] = -100;
+								teki[i][j][k].tama_y[l] = -100;								
+
+								if (jiki.life < 0){
+									alpha = 255;
+									fade_mode = 2;//フェードアウト
+									return;
+								}
+							}
+						}
+					}
+				}
+			}
+		}	
+}
+
+//敵の先頭チェック
 void sentou_chk(){
 
 	for (i = 0; i < 11; i++){
@@ -862,48 +1331,136 @@ void sentou_chk(){
 
 }
 
-//敵の残りチェック
+//敵の残りに応じた動作
 void teki_nokori_chk(){
+	if (fade_mode!=3  && fade_mode!=2){
+		if (teki_nokori == 3){
+			if (UFO == 0){
+				en_cnt_MAX = 5;
+				UFO = 1;
+				for (i = 0; i < 3; i++) {
+					for (j = 0; j < 2; j++) {
+						for (k = 0; k < 11; k++) {
+							teki[i][j][k].t_sp = 6;
+							for (l = 0; l < 10; l++) {
 
-	if (teki_nokori>0 &&teki_nokori <= 3 && UFO==0){
-		en_cnt_MAX = 5;
-		UFO = 1;
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j < 2; j++) {
-				for (k = 0; k < 11; k++) {
-					teki[i][j][k].t_sp = 6;
-					for (l = 0; l < 10; l++) {
-						
-						//teki[i][j][k].kankaku=teki[0][0][0].kankaku_sk;
-						teki[i][j][k].kankaku_sk = rand() % 25;
+								//teki[i][j][k].kankaku=teki[0][0][0].kankaku_sk;
+								teki[i][j][k].kankaku_sk = rand() % 25;
 
+							}
+						}
 					}
 				}
 			}
 		}
+		if (teki_nokori == 11){
+			en_cnt_MAX = 30;
+		}
+		if (teki_nokori == 22){
+			en_cnt_MAX = 50;
+		}
+		if (teki_nokori == 33){
+			en_cnt_MAX = 70;
+		}
+		if (teki_nokori == 44){
+			en_cnt_MAX = 90;
+		}
+		if (teki_nokori == 0){
+
+			alpha = 255;
+			fade_mode = 3;//フェードアウト
+		}
+=======
+//敵の先頭チェック
+void sentou_chk(){
+
+	for (i = 0; i < 11; i++){
+		if (teki[2][1][i].dead == 0){
+			teki[2][1][i].sentou = 1;
+
+		}
+		else if (teki[2][0][i].dead == 0){
+			teki[2][1][i].sentou = 0;
+
+			teki[2][0][i].sentou = 1;
+
+		}
+		else if (teki[1][1][i].dead == 0){
+			teki[2][0][i].sentou = 0;
+			teki[1][1][i].sentou = 1;
+
+		}
+		else if (teki[1][0][i].dead == 0){
+			teki[1][1][i].sentou = 0;
+			teki[1][0][i].sentou = 1;
+
+		}
+		else if (teki[0][0][i].dead == 0){
+			teki[1][0][i].sentou = 0;
+			teki[0][0][i].sentou = 1;
+
+		}
+		else{
+			teki[0][0][i].sentou = 0;
+		}
 	}
-	
-	else if (teki_nokori == 11)en_cnt_MAX = 30;
-	else if (teki_nokori == 22)en_cnt_MAX = 50;
-	else if (teki_nokori == 33)en_cnt_MAX = 70;
-	else if (teki_nokori == 44) en_cnt_MAX = 90;
-	
-	if (teki_nokori == 0){
-		alpha = 255;
-		fade_mode = 3;//フェードアウト
+
+}
+
+//敵の残りに応じた動作
+void teki_nokori_chk(){
+	if (fade_mode!=3  && fade_mode!=2){
+		if (teki_nokori == 3){
+			if (UFO == 0){
+				en_cnt_MAX = 5;
+				UFO = 1;
+				for (i = 0; i < 3; i++) {
+					for (j = 0; j < 2; j++) {
+						for (k = 0; k < 11; k++) {
+							teki[i][j][k].t_sp = 6;
+							for (l = 0; l < 10; l++) {
+
+								//teki[i][j][k].kankaku=teki[0][0][0].kankaku_sk;
+								teki[i][j][k].kankaku_sk = rand() % 25;
+
+							}
+						}
+					}
+				}
+			}
+		}
+		if (teki_nokori == 11){
+			en_cnt_MAX = 30;
+		}
+		if (teki_nokori == 22){
+			en_cnt_MAX = 50;
+		}
+		if (teki_nokori == 33){
+			en_cnt_MAX = 70;
+		}
+		if (teki_nokori == 44){
+			en_cnt_MAX = 90;
+		}
+		if (teki_nokori == 0){
+
+			alpha = 255;
+			fade_mode = 3;//フェードアウト
+		}
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 	}
 }
 
-
+//スコアチェック
 void sc_chk(){
 
 	if (ten.now > ten.high) ten.high = ten.now;
 }
 
-
 //カウンタ関数
-
 void counter(){
+<<<<<<< HEAD
+
+	jiki.tama_cnt--;
 	if (jiki.dead == 0 && stop == 0){
 		jiki.count--;
 	}
@@ -911,6 +1468,15 @@ void counter(){
 	if (jiki.dead == 1){
 		dead_cnt--;
 
+=======
+	if (jiki.dead == 0 && stop == 0){
+		jiki.count--;
+	}
+
+	if (jiki.dead == 1){
+		dead_cnt--;
+
+>>>>>>> bb22652e2fe6c1f1d4ac41564feb82a679c2b182
 		if (jiki.life >= 0){
 			if (dead_cnt == 100){
 				stop = 0;
@@ -923,5 +1489,35 @@ void counter(){
 	}
 }
 
+//スタート画面
+void start(){
+	DrawGraph(70, 80, title, TRUE);//タイトルの表示
+
+
+	//スペースキーを押してください画面
+	if (T_Cnt > 10)
+	{
+
+		DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 219, 255), FontHandle1); //文字を画面中央に表示　
+	}
+	else if (T_Cnt > 0)
+	{
+
+		DrawStringToHandle(170, 300, "Push Space Key !", GetColor(0, 0, 0), FontHandle1); //文字を画面中央に表示
+	}
+	else if (T_Cnt == 0)
+	{
+		T_Cnt = 20;
+	}
+
+	if (CheckHitKey(KEY_INPUT_SPACE))
+	{
+		G_mode = 1;//ゲーム本編へ
+		DeleteFontToHandle(FontHandle1);//フォントハンドラ１を捨てる
+		alpha = 255;
+	}
+
+	T_Cnt--;//カウンタを引く
+}
 
 
