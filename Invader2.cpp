@@ -9,8 +9,8 @@
 #include<windows.h>
 #include<time.h>
 #include <stdlib.h>
-#define kazu 300
-#define jikidan_kankaku 8 ;
+#define kazu 100
+#define jikidan_kankaku 3;
 
 //------ 関数のプロトタイプ宣言 ------//
 void start();//タイトル画面
@@ -39,11 +39,12 @@ void jiki_atari();//敵弾と自機の当たり判定関数
 void sentou_chk();//敵の列の中で先頭が誰かチェック
 void teki_nokori_chk();//敵の残りチェック
 void sc_chk();//点数計算
+void tm_cnt();//タイマー関数
 void fade();//フェード関数
 //関数宣言終わり
 
 //------ 変数の定義 ------//
-int Key_Trg, Key_Info, Key_Old;   // キー情報
+int Key_Trg, Key_Info, Key_Old;   // キー情報r
 int ChkKAny;                             // とにかくキーが押されたらtrue
 int GLpCnt;                             // ゲームループカウンタ
 int i, j, k,l;//ループ用
@@ -51,6 +52,10 @@ int title;//タイトル画像読み込み用
 int bg; //ゲーム本編背景画像用
 int GO;//ゲームオーバー画面読み取り用
 int cl;//クリア画面用
+
+int S1, S2;//音声用
+
+
 int chr[10];//キャラクター分割画像読み込み用変数
 int tm[2];//弾データ読み込み用変数
 int FontHandle1;//タイトル用フォントハンドラ;//フォントハンドラ１用
@@ -58,6 +63,11 @@ int FontHandle2;//ゲーム用フォントハンドラ;//フォントハンドラ２用
 int migihaji;//右端のｘ座標を入れる変数
 int hidarihaji;//左端のｘ座標をいれる変数
 int T_Cnt;//タイトルのＰＵＳＨ　ＳＰＡＣＥ点滅用
+unsigned long   tm_1;//タイマー開始
+unsigned long   tm_2;//タイマー終了
+unsigned long  r_tm;//残り時間変数
+unsigned long tm_p;//経過時間（秒）
+int t_flag;//タイマーフラグ
 
 //初期化が必要な変数群
 int lx;//キャラクタ横の長さ
@@ -74,6 +84,7 @@ int fade_mode=0 ;//１がフェードイン２がフェードアウト
 int sentou[5][11];
 int  teki_nokori ;//敵の残り
 int  yoyuu=8;//自機の当たり判定を緩める
+
 struct par{
 	int x;//x座標
 	int y;//y座標
@@ -93,8 +104,8 @@ struct par{
 	int tama_cnt;//自機弾の間隔
 };//各キャラのパラメータ
 struct score{
-	int now;//現在スコア
-	int high;//ハイスコア
+	unsigned long now;//現在スコア
+	unsigned long high;//ハイスコア
 }ten = { 0, 0 };
 struct par teki[3][2][11];///敵の構造体宣言（強さ、何段目か、何列目）	
 struct par jiki;//自機の構造体宣言
@@ -111,7 +122,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return -1;                              // エラーが起きたら直ちに終了
 	}
 	SetDrawScreen(DX_SCREEN_BACK);              // 描画先を裏画面へ
-	init();                                     // ゲームシステム初期化
+	init();         
+	
+	PlaySoundMem(S1, DX_PLAYTYPE_BACK);
+
+	// ゲームシステム初期化
 	//------ ゲームループ ------//
 	while (CheckHitKey(KEY_INPUT_ESCAPE) == 0) { // Escキーが押されるまでループ
 		ClsDrawScreen();                        // 裏画面クリア
@@ -151,6 +166,10 @@ void init()
 	bg = LoadGraph("../Img/bg.jpg");//ゲーム本編背景画像
 	GO = LoadGraph("../Img/gover.jpg");//ゲームオーバー画面
 	cl = LoadGraph("../Img/gclear.jpg");//クリア画面
+
+	S1 = LoadSoundMem("G:/SVA/satou/INVADER/Sound/1.wav");
+	
+
 	FontHandle1 = CreateFontToHandle(NULL, 40, 4);//タイトル用フォントハンドラ;//フォントハンドラ１
 	FontHandle2 = CreateFontToHandle(NULL, 16, 8);//ゲーム用フォントハンドラ;//フォントハンドラ２
 	//初期変数数値設定
@@ -172,6 +191,12 @@ void init()
 	jiki.x = 225 + 32; jiki.y = 480 - (16 * 5), jiki.sp = 2; jiki.t_sp = 4; jiki.dead = 0; jiki.life = 3; //自機の構造体宣言
 	ten.now = 0;//現在スコアの初期化
 	jiki.tama_cnt=jikidan_kankaku;
+
+	r_tm = 30;//残り時間初期化　
+
+
+	t_flag = 0;//タイマースイッチ０
+
 	for (k = 0; k < 11; k++){
 		teki[0][0][k].y = ly * 5;//緑の敵の初期ｙ座標
 		teki[0][0][k].t_sp = 6;//弾の速さ
@@ -239,7 +264,11 @@ void game_main()
 	switch (G_mode)
 	{
 	case 0:
+		
 		start();//スタート画面
+		
+
+
 		break;
 	case 1://タイトルのフェードアウト
 		if (alpha <= 0) {
@@ -253,6 +282,10 @@ void game_main()
  		DrawGraph(70, 80, title, TRUE);//タイトルの表示
 		break;
 	case 10://ゲーム本編
+		
+		
+		tm_cnt();//タイマー
+
 		
 		fade();//フェードイン/アウト
 			
@@ -293,8 +326,8 @@ void game_main()
 	
 			SetFontSize(32);// 文字の大きさを指定する
             DrawFormatString(100, 20, GetColor(255, 50, 50), " ゲームオーバー"); 
-			DrawFormatString(40, 120, GetColor(255,50,50), "スコア    :%08d点", ten.now); //　現在の点数
-			DrawFormatString(40, 190, GetColor(255,50,50), "ハイスコア:%08d点", ten.high); //　ハイスコア
+			DrawFormatString(40, 120, GetColor(255,50,50), "スコア    :%8d点", ten.now); //　現在の点数
+			DrawFormatString(40, 190, GetColor(255,50,50), "ハイスコア:%8d点", ten.high); //　ハイスコア
 			DrawFormatString(40, 290, GetColor(255,50,50), "もう一度:R"); //　現在の点数
 			DrawFormatString(40, 360, GetColor(255,50,50), "やめる  :ESC"); //　ハイスコア
 	      
@@ -315,8 +348,8 @@ void game_main()
 		}
 		SetFontSize(32);// 文字の大きさを指定する		
 			DrawFormatString(100, 20, GetColor(0, 219, 255), "    クリア"); 
-			DrawFormatString(40, 90, GetColor(0, 219, 255),  "スコア　  :%08d点", ten.now); //　現在の点数
-			DrawFormatString(40, 160, GetColor(0, 219, 255), "ハイスコア:%08d点", ten.high); //　ハイスコア
+			DrawFormatString(40, 90, GetColor(0, 219, 255),  "スコア　  :%8d点", ten.now); //　現在の点数
+			DrawFormatString(40, 160, GetColor(0, 219, 255), "ハイスコア:%8d点", ten.high); //　ハイスコア
 			
 			DrawFormatString(40, 290, GetColor(0,219,255), "もう一度:R"); //　現在の点数
 			DrawFormatString(40, 360, GetColor(0,219,255), "やめる  :ESC"); //　ハイスコア
@@ -358,9 +391,11 @@ void key_check()
 /////////  表示関係  //////////////////////
 void haikei()
 {
-	DrawGraph(0, 0, bg, TRUE);//背景の表示関数
-	DrawFormatStringToHandle(64, 20, GetColor(255, 255, 255), FontHandle2, "Your Score %04d", ten.now);//現在スコアの表示
-	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(255, 255, 255), FontHandle2, "Hi-Score %04d", ten.high);//ハイスコアの表示
+	DrawGraph(0, 0, bg, TRUE);
+	DrawFormatStringToHandle( 64, 20, GetColor(255, 255, 255), FontHandle2, "Score %6d", ten.now);//現在スコアの表示
+	DrawFormatStringToHandle(450 + 32 - 192, 20, GetColor(255, 255, 255), FontHandle2, "Hi-Score %6d", ten.high);//ハイスコアの表示
+	DrawFormatStringToHandle(160+30, 20, GetColor(255, 255, 255), FontHandle2, "残り%2d秒", r_tm);//残り時間表示
+
 }
 //フェード
 void fade(){
@@ -394,7 +429,7 @@ void hyouji_all(){
 	//背景・スコア表示
 	haikei();
 	zanki();
-	////自機の弾表示関係
+	
 	//自機弾
 	jikidan_hyouji();
 	//敵弾表示
@@ -416,18 +451,18 @@ void jiki_hyouji(){//自機の表示
 }
 //自機の操作
 void jiki_sousa() {
-	if ((Key_Info & 0x01)== 0x01 && jiki.x > 31){
+	if ((Key_Info & 0x01) == 0x01 && jiki.x > 31){
 		jiki.x -= jiki.sp;//左へ
 	}
 	if ((Key_Info & 0x02) == 0x02 && jiki.x + lx < 450 + 31){
 		jiki.x += jiki.sp;//右へ
 	}
-	//if (Key_Trg == 0x10){
-		if ( (Key_Trg & 0x10) == 0x10 ){
-			if(jiki.tama_cnt<=0){
-				jiki.tama_cnt=jikidan_kankaku;
-		jikidan_hassha();//自機弾発射
-			}
+	//if( (Key_Info&0x10) == 0x10){
+	if ((Key_Trg & 0x10) == 0x10){
+		if (jiki.tama_cnt <= 0){
+			jiki.tama_cnt = jikidan_kankaku;
+			jikidan_hassha();//自機弾発射
+		}
 	}
 }
 ///////////////////////////////////
@@ -610,13 +645,13 @@ void teki_atari(){
 								teki_nokori--;//敵残りの数
 								switch (i){
 								case 0:
-									ten.now += 100;//100点プラス
+									ten.now += 100*r_tm;//100点プラス
 									break;
 								case 1:
-									ten.now += 50;//50点プラス
+									ten.now += 50*r_tm;//50点プラス
 									break;
 								case 2:
-									ten.now += 10;//10点プラス
+									ten.now += 10*r_tm;//10点プラス
 									break;
 								}
 								
@@ -720,7 +755,7 @@ void teki_nokori_chk(){
 	}
 }
 //スコアチェック
-void sc_chk(){
+void sc_chk(){	
 	if (ten.now > ten.high) ten.high = ten.now;
 }
 //カウンタ関数
@@ -744,6 +779,9 @@ void counter(){
 }
 //スタート画面
 void start(){
+
+	
+
 	DrawGraph(70, 80, title, TRUE);//タイトルの表示
 	//スペースキーを押してください画面
 	if (T_Cnt > 10)
@@ -765,4 +803,24 @@ void start(){
 		alpha = 255;
 	}
 	T_Cnt--;//カウンタを引く
+}
+
+void tm_cnt(){
+
+	if (t_flag == 0){
+		tm_1 = clock();
+		t_flag = 1;
+	}
+	tm_2 = clock();//タイマースタート
+	tm_p = (tm_2 - tm_1) / 1000;//経過した時間
+
+	if (r_tm > 0){
+		r_tm = 30 - tm_p ;//60秒から引く
+	}
+	else{
+		fade_mode = 2;//ゲームオーバー
+		stop = 1;
+	}
+
+
 }
